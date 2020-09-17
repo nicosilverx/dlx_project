@@ -43,7 +43,6 @@ VectProc:process
 		RST_s<='1'; ALU_FUNC_s <= ADD;
 		wait until (CLK_s='1' and CLK_s'event);
 
-		
 		wait until (CLK_s='1' and CLK_s'event);
 		wait for 5 ns;
 		assert (OUT1_s=X"0000009D");
@@ -68,13 +67,10 @@ VectProc:process
 		wait for 5 ns;
 		assert (OUT1_s=X"0000007D");
 
-		ALU_FUNC_s <= BITXOR;
-		B_s <= X"00000005";
+		ALU_FUNC_s <= BITXOR; B_s <= X"00000005";
 		wait until (CLK_s='1' and CLK_s'event);
 		wait for 5 ns;
 		assert (OUT1_s=X"0000005D");
-
-
 
 		ALU_FUNC_s <= FUNCLSL;
 		wait until (CLK_s='1' and CLK_s'event);
@@ -106,6 +102,66 @@ VectProc:process
 		wait for 5 ns;
 		assert (OUT1_s=X"A8000001");
 
+		S1_s <= '0'; S2_s <= '1';
+		ALU_FUNC_s <= ADD;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"0000019B");
+
+		ALU_FUNC_s <= SUB;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFE0B");
+
+		ALU_FUNC_s <= MULT;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFAFD8");
+
+		ALU_FUNC_s <= BITAND;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"000001C0");
+
+		ALU_FUNC_s <= BITOR;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFFDB");
+
+		ALU_FUNC_s <= BITXOR; B_s <= X"00000005";
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFE1B");
+
+		ALU_FUNC_s <= FUNCLSL;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFA60") report "FUNCLSL";
+
+		ALU_FUNC_s <= FUNCLSR;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"07FFFFFE") report "FUNCLSR";
+
+		ALU_FUNC_s <= FUNCASL;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFA60");
+
+		ALU_FUNC_s <= FUNCASR;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFFFE");
+
+		ALU_FUNC_s <= FUNCRL;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"FFFFFA7F");
+
+		ALU_FUNC_s <= FUNCRR;
+		wait until (CLK_s='1' and CLK_s'event);
+		wait for 5 ns;
+		assert (OUT1_s=X"9FFFFFFE");
 		wait;
 	end process VectProc;
 end datapath_tb_test;
