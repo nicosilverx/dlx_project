@@ -37,7 +37,7 @@ begin
 --Component declarations
 PC : register_generic Generic Map (NBIT=> 32) Port Map (D=> mux_to_pc, Q=> pc_to_adder, CLK=> CLK, RST=> RST, EN=> PC_EN);
 IR : register_generic Generic Map (NBIT=> 32) Port Map (D=> instruction_word, Q=> IR_out, CLK=> CLK, RST=> RST, EN=> IR_EN);
-adder : adder_generic Generic Map (NBIT=> 32) Port Map (A=> pc_to_adder, B=> X"00000001", S=> adder_to_mux); --aumentare di 1 o 4??
+adder : adder_generic Generic Map (NBIT=> 32) Port Map (A=> pc_to_adder, B=> X"00000004", S=> adder_to_mux); --aumentare di 1 o 4??
 mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> next_pc, B=> adder_to_mux, SEL=> SEL_MUX1, OUTPUT=> mux_to_pc);
 PC_new <= adder_to_mux;
 PC_out <= pc_to_adder;

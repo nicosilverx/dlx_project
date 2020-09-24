@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use std.textio.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 
 
@@ -28,7 +29,7 @@ architecture IRam_Bhe of IRAM is
 
 begin  -- IRam_Bhe
 
-  Dout <= conv_std_logic_vector(IRAM_mem(conv_integer(unsigned(Addr))),I_SIZE);
+  Dout <= conv_std_logic_vector(IRAM_mem(conv_integer(ieee.std_logic_arith.UNSIGNED(shift_right(ieee.NUMERIC_STD.UNSIGNED(Addr), 2)))),I_SIZE);
 
   -- purpose: This process is in charge of filling the Instruction RAM with the firmware
   -- type   : combinational
@@ -45,7 +46,7 @@ begin  -- IRam_Bhe
       while (not endfile(mem_fp)) loop
         readline(mem_fp,file_line);
         hread(file_line,tmp_data_u);
-        IRAM_mem(index) <= conv_integer(unsigned(tmp_data_u));       
+        IRAM_mem(index) <= conv_integer(ieee.std_logic_arith.UNSIGNED(tmp_data_u));       
         index := index + 1;
       end loop;
     end if;
