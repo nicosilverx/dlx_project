@@ -7,9 +7,10 @@ entity decode_stage is
           RF_EN, READ1_EN, READ2_EN, WRITE_EN, RS1_EN, RS2_EN, RS_EN, RD_EN, IMM_EN, IS_BRANCH, CLK, RST : in std_logic;
           RD_address : in std_logic_vector(0 to 4);
           RD_data    : in std_logic_vector(0 to NBIT-1);
-          RS1_out, RS2_out, RS_out, RD_out, IMM_out, PC_out : out std_logic_vector(0 to NBIT-1);
+          RS1_out, RS2_out, IMM_out, PC_out : out std_logic_vector(0 to NBIT-1);
+          RS_out, RD_out : out std_logic_vector(0 to 4);
           OPCODE_out : out std_logic_vector(0 to 5);
-          FUNC_out   : out std_logic_vector(0 to 1);
+          FUNC_out   : out std_logic_vector(0 to 10);
           IS_EQUAL   : out std_logic); 
 end decode_stage;
 
@@ -68,12 +69,14 @@ signal se_to_imm_reg, se_to_adder : std_logic_vector(0 to NBIT-1);
 
 begin
     OPCODE_out <= IR_in(0 to 5);
-    FUNC_out   <= IR_in(26 to 31);
+    FUNC_out   <= IR_in(21 to 31);
     r1_to_rf   <= IR_in(6 to 10);
     r2_to_rf   <= IR_in(11 to 15);
     r3_to_rd   <= IR_in(16 to 20);
     imm_to_se  <= IR_in(16 to 31);
     name_to_se <= IR_in(6 to 31);
+    RS1_out <= rs1_to_comparator;
+    RS2_out <= rs2_to_comparator;
     
 --Integer Register File    
 register_file : register_file_generic Generic Map (N_ROWS=> 32, NBIT_ADDRESS=> 5, NBIT_WORD=> 32)
@@ -92,9 +95,9 @@ reg_RS1 : register_generic Generic Map (NBIT=> 32) Port Map (D=> rf_to_rs1,
     Q=> rs1_to_comparator, CLK=> CLK, RST=> RST, EN=> RS1_EN );     
 reg_RS2 : register_generic Generic Map (NBIT=> 32) Port Map (D=> rf_to_rs2, 
     Q=> rs2_to_comparator, CLK=> CLK, RST=> RST, EN=> RS2_EN );
-reg_RS  : register_generic Generic Map (NBIT=> 32) Port Map (D=> r2_to_rf, 
+reg_RS  : register_generic Generic Map (NBIT=> 5) Port Map (D=> r2_to_rf, 
     Q=> RS_out, CLK=> CLK, RST=> RST, EN=> RS_EN);
-reg_RD  : register_generic Generic Map (NBIT=> 32) Port Map (D=> r3_to_rd,
+reg_RD  : register_generic Generic Map (NBIT=> 5) Port Map (D=> r3_to_rd,
     Q=> RD_out, CLK=> CLK, RST=> RST, EN=> RD_EN);
 reg_IMM : register_generic Generic Map (NBIT=> 32) Port Map (D=> se_to_imm_reg,
     Q=> IMM_out, CLK=> CLK, RST=> RST, EN=> IMM_EN);          

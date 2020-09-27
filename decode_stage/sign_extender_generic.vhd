@@ -15,7 +15,7 @@ begin
 
 SignProc:process(A)
 begin
-    O <= std_logic_vector(resize(unsigned(A),NBIT_output));
+    O <= std_logic_vector(resize(signed(A),NBIT_output));
 end process SignProc;
 
 end rtl;
