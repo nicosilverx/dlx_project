@@ -6,36 +6,36 @@ end decode_tb;
 
 architecture test of decode_tb is
 --Signals
-signal IR_in_s, PC_in_s :  std_logic_vector(0 to 31);
-signal RF_EN_s, READ1_EN_s, READ2_EN_s, WRITE_EN_s, RS1_EN_s, RS2_EN_s, RS_EN_s, RD_EN_s, IMM_EN_s, IS_BRANCH_s, CLK_s, RST_s : std_logic := '0';
-signal RD_address_s :  std_logic_vector(0 to 4);
-signal RD_data_s    :  std_logic_vector(0 to 31);
-signal RS1_out_s, RS2_out_s, IMM_out_s, PC_out_s : std_logic_vector(0 to 31);
-signal RS_out_s, RD_out_s : std_logic_vector(0 to 4);
-signal OPCODE_out_s :  std_logic_vector(0 to 5);
-signal FUNC_out_s   :  std_logic_vector(0 to 10);
-signal IS_EQUAL_s   :  std_logic;
+signal NPC_in_s, IR_in_s, WB_datain_s :  std_logic_vector(0 to 31);
+signal WB_add_s :  std_logic_vector(0 to 4);
+signal NPC_out_s, A_out_s, B_out_s, IMM_out_s :  std_logic_vector(0 to 31);
+signal C_out_s :  std_logic_vector(0 to 4);
+signal Opcode_out_s :  std_logic_vector(0 to 5);
+signal Func_out_s   :  std_logic_vector(0 to 10);
+signal EN_READ1_s, EN_READ2_s, EN_WRITE_s, EN_RF_s, EN_A_s, EN_B_s, EN_C_s, EN_IMM_s, sel_imm_mux_s, CLK_s, RST_s : std_logic :='1';
 --Component under test
 component decode_stage is
     Generic (NBIT : integer := 32);
-    Port (IR_in, PC_in : in std_logic_vector(0 to NBIT-1);
-          RF_EN, READ1_EN, READ2_EN, WRITE_EN, RS1_EN, RS2_EN, RS_EN, RD_EN, IMM_EN, IS_BRANCH, CLK, RST : in std_logic;
-          RD_address : in std_logic_vector(0 to 4);
-          RD_data    : in std_logic_vector(0 to NBIT-1);
-          RS1_out, RS2_out, IMM_out, PC_out : out std_logic_vector(0 to NBIT-1);
-          RS_out, RD_out : out std_logic_vector(0 to 4);
-          OPCODE_out : out std_logic_vector(0 to 5);
-          FUNC_out   : out std_logic_vector(0 to 10);
-          IS_EQUAL   : out std_logic); 
+    Port (NPC_in, IR_in, WB_datain : in std_logic_vector(0 to NBIT-1);
+          WB_add : in std_logic_vector(0 to 4);
+          NPC_out, A_out, B_out, IMM_out : out std_logic_vector(0 to NBIT-1);
+          C_out : out std_logic_vector(0 to 4);
+          Opcode_out : out std_logic_vector(0 to 5);
+          Func_out   : out std_logic_vector(0 to 10);
+          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, sel_imm_mux, CLK, RST : in std_logic); 
 end component;
 
 begin
 
-decode_dut : decode_stage Generic Map (NBIT=> 32) Port Map (IR_in=> IR_in_s, PC_in=> PC_in_s,
-	RF_EN=> RF_EN_s, READ1_EN=> READ1_EN_s, READ2_EN=> READ2_EN_s, WRITE_EN=> WRITE_EN_s, RS1_EN=> RS1_EN_s, RS2_EN=> RS2_EN_s,
-	RS_EN=> RS_EN_s, RD_EN=> RD_EN_s, IMM_EN=> IMM_EN_s, IS_BRANCH=> IS_BRANCH_s, CLK=> CLK_s, RST=> RST_s, RD_address=> RD_address_s, 
-	RD_data=> RD_data_s, RS1_out=> RS1_out_s, RS2_out=> RS2_out_s, RS_out=> RS_out_s, RD_out=> RD_out_s, IMM_out=> IMM_out_s, PC_out=> PC_out_s,
-	OPCODE_out=> OPCODE_out_s, FUNC_out=> FUNC_out_s, IS_EQUAL=> IS_EQUAL_s);
+decode_dut : decode_stage Generic Map (NBIT=> 32) Port Map (
+    NPC_in=> NPC_in_s, IR_in=> IR_in_s, WB_datain=> WB_datain_s,
+    WB_add=> WB_add_s,
+    NPC_out=> NPC_out_s, A_out=> A_out_s, B_out=> B_out_s, IMM_out=> IMM_out_s,
+    C_out=> C_out_s,
+    Opcode_out=> Opcode_out_s,
+    Func_out=> Func_out_s,
+    EN_READ1=> EN_READ1_s, EN_READ2=> EN_READ2_s, EN_WRITE=> EN_WRITE_s, EN_RF=> EN_RF_s, 
+    EN_A=> EN_A_s, EN_B=> EN_B_s, EN_C=> EN_C_s, EN_IMM=> EN_IMM_s, sel_imm_mux=> sel_imm_mux_s, CLK=> CLK_s, RST=> RST_s);
 
 ClkProc:process(CLK_s)
 begin
@@ -45,12 +45,14 @@ end process ClkProc;
 VectProc:process
 begin
 RST_s<='0';
-RF_EN_s<='1'; READ1_EN_s<='1'; READ2_EN_s<='1'; RS1_EN_s<='1'; RS2_EN_s<='1'; RS_EN_s<='1'; RD_EN_s<='1'; IMM_EN_s<='1'; IS_BRANCH_s<='0';
-RD_address_s<="00000"; RD_data_s<=X"00000000"; 
-IR_in_s<=X"1040fff0"; PC_in_s<=X"0000000c";
+EN_RF_s<='1'; EN_READ1_s<='1'; EN_READ2_s<='1'; EN_WRITE_s<='0'; EN_A_s<='1'; EN_B_s<='1'; EN_C_s<='1'; EN_IMM_s<='1'; 
+sel_imm_mux_s<='0';
+WB_add_s<="00000"; WB_datain_s<=X"00000000"; 
+IR_in_s<=X"1040fff0"; NPC_in_s<=X"0000000c";
 
 wait until CLK_s='1' AND CLK_s'EVENT;
 RST_s<='1';
+wait until CLK_s='1' AND CLK_s'EVENT;
 wait until CLK_s='1' AND CLK_s'EVENT;
 
 wait;

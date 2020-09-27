@@ -42,7 +42,7 @@ begin  -- IRam_Bhe
     variable tmp_data_u : std_logic_vector(I_SIZE-1 downto 0);
   begin  -- process FILL_MEM_P
     if (Rst = '0') then
-      file_open(mem_fp,"C:\Users\Discount Elettronica\dlx_project\fetch_stage\tb\test_dump.txt",READ_MODE);
+      file_open(mem_fp,"C:\Users\Nicolò\Desktop\Digital_Designs\git_repositories\dlx_project\fetch_stage\tb\test_dump.txt",READ_MODE);
       while (not endfile(mem_fp)) loop
         readline(mem_fp,file_line);
         hread(file_line,tmp_data_u);
