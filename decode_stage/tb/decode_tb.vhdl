@@ -47,12 +47,17 @@ begin
 RST_s<='0';
 EN_RF_s<='1'; EN_READ1_s<='1'; EN_READ2_s<='1'; EN_WRITE_s<='0'; EN_A_s<='1'; EN_B_s<='1'; EN_C_s<='1'; EN_IMM_s<='1'; 
 sel_imm_mux_s<='0';
-WB_add_s<="00000"; WB_datain_s<=X"00000000"; 
+WB_add_s<="00001"; WB_datain_s<=X"FFFFFFFF"; 
 IR_in_s<=X"1040fff0"; NPC_in_s<=X"0000000c";
 
 wait until CLK_s='1' AND CLK_s'EVENT;
 RST_s<='1';
 wait until CLK_s='1' AND CLK_s'EVENT;
+EN_WRITE_s<='1'; 
+wait until CLK_s='1' AND CLK_s'EVENT;
+EN_WRITE_s<='0';
+wait until CLK_s='1' AND CLK_s'EVENT;
+sel_imm_mux_s<='1';
 wait until CLK_s='1' AND CLK_s'EVENT;
 
 wait;
