@@ -22,6 +22,9 @@ begin
         else
             EQ <= '0'; GT<='0'; LT<='1';
         end if;
+    else
+        EQ <= '1'; GT<='1'; LT<='1'; --In this way, if the comparator is not active, meaning that the instruxtion is not
+                                    -- a branch instruction, the NPC will be the PC+4 all the times                
     end if;
 end process;
 

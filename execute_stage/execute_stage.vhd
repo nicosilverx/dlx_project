@@ -5,7 +5,7 @@ entity execute_stage is
     Generic (NBIT : integer := 32);
     Port (NPC_in, A_in, B_in, Imm_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_NPC, EN_zero_reg, EN_B_reg, EN_C_reg, CLK, RST : in std_logic;
+          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_NPC, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, CLK, RST : in std_logic;
           ALU_func : in std_logic_vector(0 to 3);
           NPC_out, ALU_output, B_out: out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
@@ -68,7 +68,7 @@ is_zero <= is_zero_array(0);
 op1_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> NPC_bus, B=> A_bus, SEL=> sel_op1_mux, OUTPUT=> out_op1_mux);
 op2_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> B_in, B=> Imm_in, SEL=> sel_op2_mux, OUTPUT=> out_op2_mux);
 
-zero_comparator : comparator_generic Generic Map (NBIT=> 32) Port Map (A=> A_bus, B=>X"00000000", EN=>'1', EQ=> comparator_out, GT=> open, LT=> open);
+zero_comparator : comparator_generic Generic Map (NBIT=> 32) Port Map (A=> A_bus, B=>X"00000000", EN=> EN_comparator, EQ=> comparator_out, GT=> open, LT=> open);
 
 alu : simple_alu_generic Generic Map (NBIT=> 32) Port Map (FUNC=> ALU_func, INPUT1=> out_op1_mux, INPUT2=> out_op2_mux, ALU_OUT=> ALU_out_bus);
 
