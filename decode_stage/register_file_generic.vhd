@@ -25,7 +25,7 @@ begin
 ClkProc:process(CLK, RST)
 variable ctrl_sig : std_logic_vector(0 to 2);
 begin
-    RF(0) <= (OTHERS=>'0');
+    RF(0) <= (OTHERS=>'0'); --R0 always at 0
 	ctrl_sig := (WR & RD1 & RD2);
     if (RST='0') then
     	RF <= (OTHERS=>(OTHERS=>'0'));

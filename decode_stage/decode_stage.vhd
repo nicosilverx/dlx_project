@@ -9,7 +9,7 @@ entity decode_stage is
           C_out : out std_logic_vector(0 to 4);
           Opcode_out : out std_logic_vector(0 to 5);
           Func_out   : out std_logic_vector(0 to 10);
-          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, sel_imm_mux, CLK, RST : in std_logic); 
+          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, EN_NPC, sel_imm_mux, CLK, RST : in std_logic); 
 end decode_stage;
 
 architecture rtl of decode_stage is
@@ -58,7 +58,7 @@ signal imm : std_logic_vector(0 to 15);
 signal se1_out, se2_out, out1, out2, imm_mux_out : std_logic_vector(0 to NBIT-1);
 begin
 
-NPC_out <= NPC_in;
+--NPC_out <= NPC_in;
 Opcode_out <= IR_in(0 to 5);
 Func_out <= IR_in(21 to 31);
 rs1 <= IR_in(6 to 10);
@@ -82,6 +82,8 @@ imm_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> se1_out, B=>se2_
     SEL=> sel_imm_mux, OUTPUT=> imm_mux_out);
     
 --Registers
+reg_NPC : register_generic Generic Map (NBIT=> 32) Port Map (D=> NPC_in, Q=> NPC_out,
+    CLK=> CLK, RST=> RST, EN=> EN_NPC);
 reg_A : register_generic Generic Map (NBIT=> 32) Port Map (D=> out1, Q=> A_out, 
     CLK=> CLK, RST=> RST, EN=> EN_A);
 reg_B : register_generic Generic Map (NBIT=> 32) Port Map (D=> out2, Q=> B_out, 
