@@ -37,5 +37,5 @@ begin
 fetch_component : fetch_stage Generic Map (NBIT=> 32) Port Map (PC_in=> PC_in, instruction_word_in=> DOUT_s, PC_out=> ADDR_s, NPC_out=> NPC_out,
   IR_out=> IR_out, CLK=> CLK, RST=> RST, PC_EN=> PC_EN, NPC_EN=> NPC_EN, IR_EN=> IR_EN);
 --IRAM 
-iram_component	: IRAM Generic Map (RAM_DEPTH=> 48, I_SIZE=> 32) Port Map (Rst=> RST, Addr=> ADDR_s, Dout=> DOUT_s);
+iram_component	: IRAM Generic Map (RAM_DEPTH=> 256, I_SIZE=> 32) Port Map (Rst=> RST, Addr=> ADDR_s, Dout=> DOUT_s);
 end rtl;
