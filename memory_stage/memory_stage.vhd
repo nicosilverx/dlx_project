@@ -3,9 +3,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity memory_stage is
     Generic (NBIT : integer := 32);
-    Port (NPC_in, ALU_output, B_in : in std_logic_vector(0 to NBIT-1);
+    Port (ALU_output, B_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          is_zero, CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg : in std_logic;
+          CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg, is_link : in std_logic;
           NPC_out, LMD_out, ALU_reg_out : out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4));
 end memory_stage;
@@ -35,20 +35,22 @@ component dram is
 end component;
 --Internal wires
 signal ALU_bus, DRAM_out : std_logic_vector(0 to NBIT-1);
+signal c_mux_out : std_logic_vector(0 to 4);
 
 begin
 
-ALU_bus <= ALU_output;
+NPC_out <= ALU_output;
 
 DRAM_1 : dram Generic Map (RAM_DEPTH=> 48, D_SIZE=> 32)
-    Port Map (ADDR=> ALU_bus, DATAIN=> B_in, DOUT=> DRAM_out, RST=> RST, READ=> EN_READ, WRITE=> EN_WRITE);
+    Port Map (ADDR=> ALU_output, DATAIN=> B_in, DOUT=> DRAM_out, RST=> RST, READ=> EN_READ, WRITE=> EN_WRITE);
 
 LMD_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> DRAM_out, Q=> LMD_out, 
     CLK=> CLK, RST=> RST, EN=> EN_LMD_reg);
-ALU_output_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> ALU_bus, Q=> ALU_reg_out, 
+ALU_output_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> ALU_output, Q=> ALU_reg_out, 
     CLK=> CLK, RST=> RST, EN=> EN_ALU_output_reg);  
-C_reg : register_generic Generic Map (NBIT=> 5) Port Map (D=> C_in, Q=> C_out, CLK=> CLK,
+C_reg : register_generic Generic Map (NBIT=> 5) Port Map (D=> c_mux_out, Q=> C_out, CLK=> CLK,
     RST=> RST, EN=> EN_C_reg);
 
-npc_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> NPC_in, B=> ALU_bus, SEL=> is_zero, OUTPUT=> NPC_out);        
+c_mux : mux2to1_generic Generic Map (NBIT=> 5) Port Map (A=> "11111", B=> C_in, SEL=> is_link, OUTPUT=> c_mux_out);
+
 end rtl;

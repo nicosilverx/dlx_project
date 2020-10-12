@@ -27,6 +27,7 @@ begin
     RST_s<='0';
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
+    wait for 0.1 ns;
     RST_s<='1';
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;

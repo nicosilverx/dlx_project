@@ -2,7 +2,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity datapath is
-    Port ( D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
+    Port ( 
+           D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
            D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_SEL_RD_MUX : in std_logic;
            E_SEL_OP1_MUX, E_SEL_OP2_MUX : in std_logic;
            E_ALU_FUNC : in std_logic_vector(0 to 3);
@@ -22,7 +23,7 @@ component fetch_stage_wrapper is
     Generic (NBIT : integer := 32);
     Port(PC_in : in std_logic_vector(0 to NBIT-1);
          NPC_out, IR_out : out std_logic_vector(0 to NBIT-1);
-         CLK, RST, PC_EN, NPC_EN, IR_EN : in std_logic);
+         CLK, RST, PC_EN, NPC_EN, IR_EN, sel_pc_mux: in std_logic);
 end component;
 
 component decode_stage is
@@ -40,18 +41,18 @@ component execute_stage is
     Generic (NBIT : integer := 32);
     Port (NPC_in, A_in, B_in, Imm_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_NPC, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, type_of_comp, CLK, RST : in std_logic;
+          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, type_of_comp, CLK, RST : in std_logic;
           ALU_func : in std_logic_vector(0 to 3);
-          NPC_out, ALU_output, B_out: out std_logic_vector(0 to NBIT-1);
+          ALU_output, B_out: out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
           is_zero : out std_logic );
 end component;
 
 component memory_stage is
     Generic (NBIT : integer := 32);
-    Port (NPC_in, ALU_output, B_in : in std_logic_vector(0 to NBIT-1);
+    Port (ALU_output, B_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          is_zero, CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg : in std_logic;
+          CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg, is_link : in std_logic;
           NPC_out, LMD_out, ALU_reg_out : out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4));
 end component;
@@ -80,9 +81,11 @@ signal C_to_decode : std_logic_vector(0 to 4);
 signal DATAPATH_to_out, WRITEBACK_to_decode : std_logic_vector(0 to 31);
 begin
 
+datapath_out <= DATAPATH_to_out; 
+
 fetch_s : fetch_stage_wrapper Generic Map (NBIT=> 32) Port Map (
     PC_in=> NPC_to_fetch, NPC_out=> NPC_to_decode, IR_out=> IR_to_decode, 
-    CLK=> CLK, RST=> RST, PC_EN=> '1', NPC_EN=> '1', IR_EN=> '1');
+    CLK=> CLK, RST=> RST, PC_EN=> '1', NPC_EN=> '1', IR_EN=> '1', sel_pc_mux=> COND_to_memory);
 
 decode_s : decode_stage Generic Map (NBIT=> 32) Port Map (
     NPC_in=> NPC_to_decode, IR_in=> IR_to_decode, WB_datain=> WRITEBACK_to_decode, 
@@ -93,15 +96,15 @@ decode_s : decode_stage Generic Map (NBIT=> 32) Port Map (
      
 execute_s : execute_stage Generic Map (NBIT=> 32) Port Map (
     NPC_in=> NPC_to_execute, A_in=> A_to_execute, B_in=> B_to_execute, Imm_in=> IMM_to_execute,
-    C_in=> C_to_execute, sel_op1_mux=>E_SEL_OP1_MUX, sel_op2_mux=> E_SEL_OP2_MUX, EN_ALU_output=> E_EN_ALU_OUTPUT, EN_NPC=> E_EN_NPC,
+    C_in=> C_to_execute, sel_op1_mux=>E_SEL_OP1_MUX, sel_op2_mux=> E_SEL_OP2_MUX, EN_ALU_output=> E_EN_ALU_OUTPUT, 
     EN_zero_reg=> E_EN_ZERO_REG, EN_B_reg=> E_EN_B_REG, EN_C_reg=> E_EN_C_REG, EN_comparator=> E_EN_COMPARATOR,
-    type_of_comp=> E_TYPE_OF_COMP, CLK=> CLK, RST=> RST, ALU_func=> E_ALU_FUNC, NPC_out=> NPC_to_memory, 
+    type_of_comp=> E_TYPE_OF_COMP, CLK=> CLK, RST=> RST, ALU_func=> E_ALU_FUNC,
     ALU_output=> ALU_to_memory, B_out=> B_to_memory, C_out=> C_to_memory, is_zero=> COND_to_memory);     
     
 memory_s : memory_stage Generic Map (NBIT=> 32) Port Map (
-    NPC_in=> NPC_to_memory, ALU_output=> ALU_to_memory, B_in=> B_to_memory, C_in=> C_to_memory, is_zero=> COND_to_memory,
+    ALU_output=> ALU_to_memory, B_in=> B_to_memory, C_in=> C_to_memory,
     CLK=> CLK, RST=> RST, EN_READ=> M_EN_READ, EN_WRITE=> M_EN_WRITE, EN_LMD_reg=> M_EN_LMD_REG, 
-    EN_ALU_output_reg=> M_EN_ALU_OUTPUT, EN_C_reg=> M_EN_C_REG, NPC_out=> NPC_to_fetch, LMD_out=> LMD_to_writeback, 
+    EN_ALU_output_reg=> M_EN_ALU_OUTPUT, EN_C_reg=> M_EN_C_REG, is_link=> M_IS_LINK,  NPC_out=> NPC_to_fetch, LMD_out=> LMD_to_writeback, 
     ALU_reg_out=> ALU_to_writeback, C_out=> C_to_decode);
     
 writeback_s : writeback_stage Generic Map (NBIT=> 32) Port Map (

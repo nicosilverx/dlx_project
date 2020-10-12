@@ -12,7 +12,7 @@ end dram;
 
 architecture rtl of dram is
 
-type RAMtype is array (0 to RAM_DEPTH - 1) of std_logic_vector(0 to D_SIZE-1);
+type RAMtype is array (0 to RAM_DEPTH - 1) of std_logic_vector(0 to D_SIZE-1) ;
 signal DRAM_mem : RAMtype;
 
 begin

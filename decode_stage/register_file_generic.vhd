@@ -22,7 +22,7 @@ signal RF : RF_ARRAY;
 
 begin
 
-ClkProc:process(CLK, RST)
+RFProc:process(RST, EN, RD1, RD2, WR, ADD_WR, ADD_RD1, ADD_RD2, DATAIN)
 variable ctrl_sig : std_logic_vector(0 to 2);
 begin
     RF(0) <= (OTHERS=>'0'); --R0 always at 0
@@ -31,7 +31,8 @@ begin
     	RF <= (OTHERS=>(OTHERS=>'0'));
         OUT1 <= (OTHERS=>'0');
         OUT2 <= (OTHERS=>'0');
-    elsif (CLK='1' AND CLK'EVENT AND EN='1') then
+    --elsif (CLK='1' AND CLK'EVENT AND EN='1') then
+    elsif (EN='1') then
     	case ctrl_sig is
                 when "000" => OUT1 <= (OTHERS=>'0'); OUT2 <= (OTHERS=>'0');
                 when "001" => OUT1 <= (OTHERS=>'0'); OUT2 <= RF(to_integer(unsigned(ADD_RD2)));
@@ -44,5 +45,5 @@ begin
                 when others=> OUT1 <= (OTHERS=>'0'); OUT2 <= (OTHERS=>'0');
             end case;
     end if;
-end process ClkProc;
+end process RFProc;
 end rtl;

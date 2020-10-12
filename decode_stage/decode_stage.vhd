@@ -70,7 +70,7 @@ imm <= IR_in(16 to 31);
 
 --Register File
 int_rf : register_file_generic Generic Map (N_ROWS=> 32, NBIT_ADDRESS=> 5, NBIT_WORD=> 32)
-    Port Map (CLK=> CLK, RST=> RST, EN=> EN_RF, RD1=> EN_READ1, RD2=> EN_READ2, WR=> EN_WRITE,
+    Port Map (CLK=> CLK, RST=> RST, EN=> '1', RD1=> EN_READ1, RD2=> EN_READ2, WR=> EN_WRITE,
     ADD_WR=> WB_add, ADD_RD1=> rs1, ADD_RD2=> rs2, DATAIN=> WB_datain, OUT1=> out1, OUT2=> out2);
 --Sign extender
 se_1 : sign_extender_generic Generic Map (NBIT_input=> 26, NBIT_output=> 32)
@@ -86,6 +86,7 @@ rd_mux : mux2to1_generic Generic Map (NBIT=> 5) Port Map (A=> rd, B=> rs2, SEL=>
 --Registers
 reg_NPC : register_generic Generic Map (NBIT=> 32) Port Map (D=> NPC_in, Q=> NPC_out,
     CLK=> CLK, RST=> RST, EN=> EN_NPC);
+
 reg_A : register_generic Generic Map (NBIT=> 32) Port Map (D=> out1, Q=> A_out, 
     CLK=> CLK, RST=> RST, EN=> EN_A);
 reg_B : register_generic Generic Map (NBIT=> 32) Port Map (D=> out2, Q=> B_out, 
