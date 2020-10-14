@@ -17,15 +17,16 @@ signal DRAM_mem : RAMtype;
 
 begin
 
-RamProc:process(RST, READ, WRITE)
+
+RamProc:process(RST, READ, WRITE, ADDR, DATAIN)
 variable ctrl_sig : std_logic_vector(0 to 1);
 begin
+ ctrl_sig := READ & WRITE;
  if(RST='0') then
     for index in 0 to RAM_DEPTH-1 loop
         DRAM_mem(index) <= (OTHERS=>'0');
     end loop;
  else
-    ctrl_sig := READ & WRITE;
     case ctrl_sig is
         when "00" => DOUT <= (OTHERS=>'0');
         when "01" => DRAM_mem(to_integer(unsigned(ADDR))) <= DATAIN;

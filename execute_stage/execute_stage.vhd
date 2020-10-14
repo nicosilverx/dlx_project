@@ -5,7 +5,7 @@ entity execute_stage is
     Generic (NBIT : integer := 32);
     Port (NPC_in, A_in, B_in, Imm_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, type_of_comp, CLK, RST : in std_logic;
+          sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, type_of_comp, is_jump, CLK, RST : in std_logic;
           ALU_func : in std_logic_vector(0 to 3);
           ALU_output, B_out: out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
@@ -50,6 +50,13 @@ component simple_alu_generic is
 			INPUT1, INPUT2 : IN std_logic_vector(0 to NBIT-1);
 			ALU_OUT : OUT std_logic_vector(0 to NBIT-1));
 end component;
+--Special reg
+component special_cond_reg is
+    Generic (NBIT : integer := 32);
+    Port (D: in std_logic_vector(0 to NBIT-1);
+          Q: out std_logic_vector(0 to NBIT-1);
+          CLK, RST, EN : in std_logic);
+end component;
 
 --Internal wires
 signal NPC_bus, A_bus, B_bus, out_op1_mux, out_op2_mux, ALU_out_bus : std_logic_vector(0 to NBIT-1);
@@ -61,7 +68,7 @@ begin
 A_bus <= A_in;
 B_bus <= B_in;
 
-comparator_out_array(0) <= comparator_out;
+comparator_out_array(0) <= (comparator_out AND NOT(is_jump));
 is_zero <= is_zero_array(0);
 
 op1_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> NPC_in, B=> A_bus, SEL=> sel_op1_mux, OUTPUT=> out_op1_mux);
@@ -73,7 +80,7 @@ zero_comparator : zero_comparator_generic Generic Map (NBIT=> 32) Port Map (A=> 
 alu : simple_alu_generic Generic Map (NBIT=> 32) Port Map (FUNC=> ALU_func, INPUT1=> out_op1_mux, INPUT2=> out_op2_mux, ALU_OUT=> ALU_out_bus);
 
 --NPC_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> NPC_bus, Q=> NPC_out, CLK=> CLK, RST=> RST, EN=> EN_NPC);
-cond_reg : register_generic Generic Map (NBIT=> 1) Port Map (D=> comparator_out_array, Q=> is_zero_array, CLK=> CLK, RST=> RST, EN=> EN_zero_reg);
+cond_reg : special_cond_reg Generic Map (NBIT=> 1) Port Map (D=> comparator_out_array, Q=> is_zero_array, CLK=> CLK, RST=> RST, EN=> EN_zero_reg);
 alu_out_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> ALU_out_bus, Q=> ALU_output, CLK=> CLK, RST=> RST, EN=> EN_ALU_output);
 B_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> B_bus, Q=> B_out, CLK=> CLK, RST=> RST, EN=> EN_B_reg);
 C_reg : register_generic Generic Map (NBIT=> 5) Port Map (D=> C_in, Q=> C_out, CLK=> CLK, RST=> RST, EN=> EN_C_reg);

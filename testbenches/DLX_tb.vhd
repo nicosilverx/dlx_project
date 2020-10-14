@@ -6,7 +6,7 @@ end DLX_tb;
 
 architecture test of DLX_tb is
 --Signal
-signal CLK_s, RST_s : std_logic := '0';
+signal CLK_s, RST_s : std_logic := '1';
 signal datapath_out_s : std_logic_vector(0 to 31);
 --DUT
 component DLX is
@@ -29,12 +29,6 @@ begin
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
     wait for 0.1 ns;
     RST_s<='1';
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
-    WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
     WAIT UNTIL CLK_s='1' AND CLK_s'EVENT;
     wait;
 end process VectProc;

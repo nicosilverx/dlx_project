@@ -18,8 +18,8 @@ begin
 	case FUNC is
 		when "0000"	=>	ALU_OUT <= std_logic_vector(signed(INPUT1) + signed(INPUT2));
 		when "0001"	=>  ALU_OUT <= std_logic_vector(signed(INPUT1) - signed(INPUT2));
-		when "0010"	=>	mul_tmp := (std_logic_vector(signed(INPUT1) * signed(INPUT2)));
-						ALU_OUT <= mul_tmp(NBIT to NBIT*2-1);
+--		when "0010"	=>	mul_tmp := (std_logic_vector(signed(INPUT1) * signed(INPUT2)));
+--						ALU_OUT <= mul_tmp(NBIT to NBIT*2-1);
 		when "0011"	=>	ALU_OUT <= (INPUT1 and INPUT2);
 		when "0100"	=>	ALU_OUT <= (INPUT1 or INPUT2);
 		when "0101"	=>	ALU_OUT <= (INPUT1 xor INPUT2);

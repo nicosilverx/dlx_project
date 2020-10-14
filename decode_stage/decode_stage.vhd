@@ -9,7 +9,7 @@ entity decode_stage is
           C_out : out std_logic_vector(0 to 4);
           Opcode_out : out std_logic_vector(0 to 5);
           Func_out   : out std_logic_vector(0 to 10);
-          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, EN_NPC, sel_imm_mux, sel_rd_mux, CLK, RST : in std_logic); 
+          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, EN_NPC, sel_imm_mux, sel_rd_mux, insert_nop, CLK, RST : in std_logic); 
 end decode_stage;
 
 architecture rtl of decode_stage is
@@ -55,7 +55,7 @@ end component;
 signal rs1, rs2, rd : std_logic_vector(0 to 4);
 signal name : std_logic_vector(0 to 25);
 signal imm : std_logic_vector(0 to 15);
-signal se1_out, se2_out, out1, out2, imm_mux_out : std_logic_vector(0 to NBIT-1);
+signal ir_mux_out, se1_out, se2_out, out1, out2, imm_mux_out : std_logic_vector(0 to NBIT-1);
 signal rd_mux_out : std_logic_vector(0 to 4);
 begin
 
@@ -79,6 +79,7 @@ se_2 : sign_extender_generic Generic Map (NBIT_input=> 16, NBIT_output=> 32)
     Port Map (A=> imm, O=> se2_out);
     
 --Multiplexer
+--ir_mux :  mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> X"54000000", B=> IR_in, SEL=> insert_nop, OUTPUT=> ir_mux_out);
 imm_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> se1_out, B=>se2_out, 
     SEL=> sel_imm_mux, OUTPUT=> imm_mux_out);
 rd_mux : mux2to1_generic Generic Map (NBIT=> 5) Port Map (A=> rd, B=> rs2, SEL=> sel_rd_mux, OUTPUT=> rd_mux_out);    
