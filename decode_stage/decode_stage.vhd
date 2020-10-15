@@ -5,7 +5,7 @@ entity decode_stage is
     Generic (NBIT : integer := 32);
     Port (NPC_in, IR_in, WB_datain : in std_logic_vector(0 to NBIT-1);
           WB_add : in std_logic_vector(0 to 4);
-          NPC_out, A_out, B_out, IMM_out : out std_logic_vector(0 to NBIT-1);
+          NPC_out, A_out, B_out, IMM_out, jal_out : out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
           Opcode_out : out std_logic_vector(0 to 5);
           Func_out   : out std_logic_vector(0 to 10);
@@ -60,7 +60,7 @@ end component;
 signal rs1, rs2, rd : std_logic_vector(0 to 4);
 signal name : std_logic_vector(0 to 25);
 signal imm : std_logic_vector(0 to 15);
-signal ir_mux_out, se1_out, se2_out, out1, out2, imm_mux_out, npc_bus : std_logic_vector(0 to NBIT-1);
+signal ir_mux_out, se1_out, se2_out, out1, out2, imm_mux_out, npc_bus, jal_bus : std_logic_vector(0 to NBIT-1);
 signal rd_mux_out : std_logic_vector(0 to 4);
 signal real_reset : std_logic := '1';
 begin
@@ -75,6 +75,8 @@ name <= IR_in(6 to 31);
 imm <= IR_in(16 to 31);
 --NPC Adder
 npc_adder : adder_generic Generic Map (NBIT=> 32) Port Map (A=> NPC_in, B=> imm_mux_out, S=> npc_bus); 
+--JAL ADder
+jal_adder : adder_generic Generic Map (NBIT=> 32) POrt Map (A=> NPC_in, B=>X"00000004", S=> jal_bus);
 --Register File
 int_rf : register_file_generic Generic Map (N_ROWS=> 32, NBIT_ADDRESS=> 5, NBIT_WORD=> 32)
     Port Map (CLK=> CLK, RST=> RST, EN=> '1', RD1=> EN_READ1, RD2=> EN_READ2, WR=> EN_WRITE,
@@ -94,6 +96,8 @@ rd_mux : mux2to1_generic Generic Map (NBIT=> 5) Port Map (A=> rd, B=> rs2, SEL=>
 --Registers
 reg_NPC : register_generic Generic Map (NBIT=> 32) Port Map (D=> npc_bus, Q=> NPC_out,
     CLK=> CLK, RST=> flush_stage, EN=> EN_NPC);
+reg_jal : register_generic Generic Map (NBIT=> 32) Port MAp (D=> jal_bus, Q=> jal_out, 
+    CLK=> CLK, RST=> flush_stage, EN=> EN_NPC);    
 
 reg_A : register_generic Generic Map (NBIT=> 32) Port Map (D=> out1, Q=> A_out, 
     CLK=> CLK, RST=> flush_stage , EN=> EN_A);

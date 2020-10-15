@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity execute_stage is
     Generic (NBIT : integer := 32);
-    Port (NPC_in, A_in, B_in, Imm_in : in std_logic_vector(0 to NBIT-1);
+    Port (NPC_in, A_in, B_in, Imm_in, jal_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
           sel_op1_mux, sel_op2_mux, EN_ALU_output, EN_zero_reg, EN_B_reg, EN_C_reg, EN_comparator, type_of_comp, is_jump, flush_stage, CLK, RST : in std_logic;
           ALU_func : in std_logic_vector(0 to 3);
@@ -69,7 +69,7 @@ A_bus <= A_in;
 B_bus <= B_in;
 comparator_out_array(0) <= (comparator_out AND NOT(is_jump));
 is_zero <= is_zero_array(0);
-op1_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> NPC_in, B=> A_bus, SEL=> sel_op1_mux, OUTPUT=> out_op1_mux);
+op1_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> jal_in, B=> A_bus, SEL=> sel_op1_mux, OUTPUT=> out_op1_mux);
 op2_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> B_in, B=> Imm_in, SEL=> sel_op2_mux, OUTPUT=> out_op2_mux);
 
 zero_comparator : zero_comparator_generic Generic Map (NBIT=> 32) Port Map (A=> A_bus, B=>X"00000000", EN=> EN_comparator,

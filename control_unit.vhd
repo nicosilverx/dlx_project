@@ -86,7 +86,7 @@ begin
                 when OTHERS => control_word<="110000001001111000100010";--nop
             end case;
         when "000010" => control_word<="110010111001111001100010";--j
-        when "000011" => control_word<="110011111001111001100110";--jal
+        when "000011" => control_word<="110011111110000001100110";--jal
         when "000100" => control_word<="110010101001111100100010";--beqz
         when "000101" => control_word<="110010101001111110100010";--bnez
         when "001000" => control_word<="111001001000000000100010";--addi
