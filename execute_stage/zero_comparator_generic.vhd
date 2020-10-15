@@ -18,16 +18,16 @@ begin
         if(type_of_comp='0') then
             --Branch if A_reg==B_reg
             if(A=B) then
-                output <= '1';
-            else 
                 output <= '0';
+            else 
+                output <= '1';
             end if;                
         else
             --Branch if A_reg!=B_reg
             if(A/=B) then
-                output <= '1';
-            else
                 output <= '0';
+            else
+                output <= '1';
             end if;
         end if;
     else

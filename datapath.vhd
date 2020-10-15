@@ -80,7 +80,7 @@ signal C_to_decode : std_logic_vector(0 to 4);
 --Writeback to Decode/OUT
 signal DATAPATH_to_out, WRITEBACK_to_decode : std_logic_vector(0 to 31);
 
-signal dp_flush_v, dp_flush, flush1, flush2, flush3, flush4 : std_logic := '1'; --attivo basso
+signal dp_flush_v, dp_flush, flush1, flush2, flush3, flush4, fetch_flush : std_logic := '1'; --attivo basso
 --signal flush_counter_active : std_logic := '0';
 signal flush_counter : integer := 1;
 
@@ -112,7 +112,7 @@ end process FlushProc;
 dp_flush <= NOT(D_IS_JUMP) AND RST;
 datapath_out <= DATAPATH_to_out; 
 IR <= IR_to_decode;
-
+fetch_flush <= flush1 AND flush2;
 FlushPip:process(CLK, dp_flush)
 begin
     if(CLK='1' AND CLK'EVENT) then
@@ -124,7 +124,7 @@ begin
 end process FlushPip;
 fetch_s : fetch_stage_wrapper Generic Map (NBIT=> 32) Port Map (
     PC_in=> NPC_to_fetch, NPC_out=> NPC_to_decode, IR_out=> IR_to_decode, 
-    CLK=> CLK, RST=> RST, PC_EN=> '1', NPC_EN=> '1', IR_EN=> '1', sel_pc_mux=> COND_to_memory, flush_stage=> flush1);
+    CLK=> CLK, RST=> RST, PC_EN=> '1', NPC_EN=> '1', IR_EN=> '1', sel_pc_mux=> COND_to_memory, flush_stage=> fetch_flush);
 
 decode_s : decode_stage Generic Map (NBIT=> 32) Port Map (
     NPC_in=> NPC_to_decode, IR_in=> IR_to_decode, WB_datain=> WRITEBACK_to_decode, 

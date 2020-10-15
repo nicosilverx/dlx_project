@@ -45,7 +45,7 @@ begin  -- IRam_Bhe
       for index in 0 to RAM_DEPTH-1 loop
         IRAM_mem(index) <= (X"54000000");
       end loop;
-      file_open(mem_fp,"C:\Users\Nicolò\Desktop\Digital_Designs\git_repositories\dlx_project\fetch_stage\tb\jump_op_test_dump.txt",READ_MODE);
+      file_open(mem_fp,"C:\Users\Nicolò\Desktop\Digital_Designs\git_repositories\dlx_project\fetch_stage\tb\beqz_test_dump.txt",READ_MODE);
       while (not endfile(mem_fp)) loop
         readline(mem_fp,file_line);
         hread(file_line,tmp_data_u);
