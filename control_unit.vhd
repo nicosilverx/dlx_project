@@ -11,7 +11,7 @@ entity control_unit is
           E_ALU_FUNC : out std_logic_vector(0 to 3);
           E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
           E_EN_B_REG, E_EN_C_REG, E_EN_COMPARATOR, E_TYPE_OF_COMP, E_IS_JUMP : out std_logic;
-          M_EN_READ, M_EN_WRITE, M_EN_LMD_REG, M_EN_ALU_OUTPUT, M_EN_C_REG, M_IS_LINK : out std_logic;
+          M_EN_READ, M_EN_WRITE, M_EN_LMD_REG, M_EN_ALU_OUTPUT, M_EN_C_REG, M_IS_LINK, M_IS_JUMP: out std_logic;
           W_SEL_WB_MUX, W_EN_DATAPATH_OUT : out std_logic);
 end control_unit;
 
@@ -26,7 +26,7 @@ end component;
 --Signals
 signal control_word : std_logic_vector(0 to 23) := (OTHERS=>'0'); --24 control signals
 signal cw_execute : std_logic_vector(0 to 16) := (OTHERS=>'0'); --17 control signals
-signal cw_memory : std_logic_vector(0 to 6) := (OTHERS=>'0'); --7 control signals
+signal cw_memory : std_logic_vector(0 to 7) := (OTHERS=>'0'); --8 control signals
 signal cw_writeback : std_logic_vector(0 to 2) := (OTHERS=>'0');
 
 begin
@@ -52,14 +52,14 @@ E_ALU_FUNC(2)<=cw_execute(6); E_ALU_FUNC(3)<=cw_execute(7);
 E_EN_COMPARATOR<=cw_execute(8); E_TYPE_OF_COMP<=cw_execute(9);
 E_IS_JUMP<=cw_execute(10);
 
-reg_2 : register_generic Generic Map (NBIT=> 7) Port Map (D(0)=>cw_execute(0), 
-    D(1 to 6)=> cw_execute(11 to 16), Q=> cw_memory, CLK=> CLK, RST=> RST, EN=> '1');
+reg_2 : register_generic Generic Map (NBIT=> 8) Port Map (D(0)=>cw_execute(0), 
+    D(1 to 6)=> cw_execute(11 to 16), D(7)=>cw_execute(10), Q=> cw_memory, CLK=> CLK, RST=> RST, EN=> '1');
     
 M_EN_LMD_REG<=cw_memory(1); M_EN_ALU_OUTPUT<=cw_memory(1); M_EN_C_REG<=cw_memory(1);
 M_EN_READ<=cw_memory(2);
 M_EN_WRITE<=cw_memory(3);
 M_IS_LINK<=cw_memory(4);
-
+M_IS_JUMP<=cw_memory(7);
 reg_3 : register_generic Generic Map (NBIT=> 3) Port Map (D(0)=>cw_memory(0), 
     D(1 to 2)=> cw_memory(5 to 6), Q=> cw_writeback, CLK=> CLK, RST=> RST, EN=> '1');
     
@@ -85,10 +85,10 @@ begin
                 when "00000101101" => control_word<="111101101011100000100010";--sge
                 when OTHERS => control_word<="110000001001111000100010";--nop
             end case;
-        when "000010" => control_word<="110010111100000001100010";--j
-        when "000011" => control_word<="110011111100000001100110";--jal
-        when "000100" => control_word<="110010101100000100100010";--beqz
-        when "000101" => control_word<="110010101100000110100010";--bnez
+        when "000010" => control_word<="110010111001111001100010";--j
+        when "000011" => control_word<="110011111001111001100110";--jal
+        when "000100" => control_word<="110010101001111100100010";--beqz
+        when "000101" => control_word<="110010101001111110100010";--bnez
         when "001000" => control_word<="111001001000000000100010";--addi
         when "001010" => control_word<="111001001000001000100010";--subi
         when "001100" => control_word<="111001001000011000100010";--andi

@@ -5,7 +5,7 @@ entity memory_stage is
     Generic (NBIT : integer := 32);
     Port (ALU_output, B_in : in std_logic_vector(0 to NBIT-1);
           C_in : in std_logic_vector(0 to 4);
-          CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg, is_link : in std_logic;
+          CLK, RST, EN_READ, EN_WRITE, EN_LMD_reg, EN_ALU_output_reg, EN_C_reg, is_link, flush_stage: in std_logic;
           NPC_out, LMD_out, ALU_reg_out : out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4));
 end memory_stage;
@@ -39,7 +39,7 @@ signal c_mux_out : std_logic_vector(0 to 4);
 
 begin
 
-NPC_out <= ALU_output;
+--NPC_out <= ALU_output;
 
 DRAM_1 : dram Generic Map (RAM_DEPTH=> 48, D_SIZE=> 32)
     Port Map (ADDR=> ALU_output, DATAIN=> B_in, DOUT=> DRAM_out, RST=> RST, READ=> EN_READ, WRITE=> EN_WRITE);
