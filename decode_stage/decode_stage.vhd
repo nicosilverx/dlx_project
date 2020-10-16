@@ -6,10 +6,10 @@ entity decode_stage is
     Port (NPC_in, IR_in, WB_datain : in std_logic_vector(0 to NBIT-1);
           WB_add : in std_logic_vector(0 to 4);
           NPC_out, A_out, B_out, IMM_out, jal_out : out std_logic_vector(0 to NBIT-1);
-          C_out : out std_logic_vector(0 to 4);
+          C_out, Rd_out : out std_logic_vector(0 to 4);
           Opcode_out : out std_logic_vector(0 to 5);
           Func_out   : out std_logic_vector(0 to 10);
-          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, EN_NPC, sel_imm_mux, sel_rd_mux, flush_stage, CLK, RST : in std_logic); 
+          EN_READ1, EN_READ2, EN_WRITE, EN_RF, EN_A, EN_B, EN_C, EN_IMM, EN_NPC, sel_imm_mux, sel_rd_mux, flush_stage, D_EN_WRITE_DECODE, CLK, RST : in std_logic); 
 end decode_stage;
 
 architecture rtl of decode_stage is
@@ -66,6 +66,7 @@ signal real_reset : std_logic := '1';
 begin
 
 --NPC_out <= NPC_in;
+rd_out <= rd_mux_out;
 Opcode_out <= IR_in(0 to 5);
 Func_out <= IR_in(21 to 31);
 rs1 <= IR_in(6 to 10);

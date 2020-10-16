@@ -11,7 +11,7 @@ architecture rtl of DLX is
 component datapath is
     Port ( 
            D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
-           D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_SEL_RD_MUX, D_IS_JUMP: in std_logic;
+           D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP: in std_logic;
            E_SEL_OP1_MUX, E_SEL_OP2_MUX : in std_logic;
            E_ALU_FUNC : in std_logic_vector(0 to 3);
            E_EN_NPC, E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
@@ -29,7 +29,7 @@ component control_unit is
           D_FUNC : in std_logic_vector(0 to 10);
           CLK, RST : in std_logic;
           D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
-          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_SEL_RD_MUX, D_IS_JUMP : out std_logic;
+          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP : out std_logic;
           E_SEL_OP1_MUX, E_SEL_OP2_MUX : out std_logic;
           E_ALU_FUNC : out std_logic_vector(0 to 3);
           E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
@@ -43,7 +43,7 @@ signal D_IR : std_logic_vector(0 to 31);
 signal D_OPCODE : std_logic_vector(0 to 5);
 signal D_FUNC : std_logic_vector(0 to 10);
 signal D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
- D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_SEL_RD_MUX, D_IS_JUMP : std_logic;
+ D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP : std_logic;
 signal E_SEL_OP1_MUX, E_SEL_OP2_MUX : std_logic;
 signal E_ALU_FUNC : std_logic_vector(0 to 3);
 signal E_EN_NPC, E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
@@ -57,7 +57,7 @@ begin
 tmp<=flusha OR E_IS_JUMP;
 dp : datapath Port Map (
     D_EN_RF=> D_EN_RF, D_EN_READ1=> D_EN_READ1, D_EN_READ2=> D_EN_READ2, D_SEL_IMM_MUX=> D_SEL_IMM_MUX,
-    D_EN_A=> D_EN_A, D_EN_B=> D_EN_B, D_EN_C=> D_EN_C, D_EN_IMM=> D_EN_IMM, D_EN_NPC=> D_EN_NPC, D_EN_WRITE=> D_EN_WRITE, D_SEL_RD_MUX=> D_SEL_RD_MUX,
+    D_EN_A=> D_EN_A, D_EN_B=> D_EN_B, D_EN_C=> D_EN_C, D_EN_IMM=> D_EN_IMM, D_EN_NPC=> D_EN_NPC, D_EN_WRITE=> D_EN_WRITE, D_EN_WRITE_DECODE=> D_EN_WRITE_DECODE, D_SEL_RD_MUX=> D_SEL_RD_MUX,
     D_IS_JUMP=> D_IS_JUMP, --Use E_IS_JUMP if branch_delay_slot activated, tmp otherwise
     E_SEL_OP1_MUX=> E_SEL_OP1_MUX, E_SEL_OP2_MUX=> E_SEL_OP2_MUX, 
     E_ALU_FUNC=> E_ALU_FUNC, 
@@ -71,7 +71,7 @@ cu : control_unit
     Port Map ( 
     D_OPCODE=> D_OPCODE, D_FUNC=> D_FUNC, CLK=> CLK, RST=> RST,
      D_EN_RF=> D_EN_RF, D_EN_READ1=> D_EN_READ1, D_EN_READ2=> D_EN_READ2, D_SEL_IMM_MUX=> D_SEL_IMM_MUX,
-     D_EN_A=> D_EN_A, D_EN_B=> D_EN_B, D_EN_C=> D_EN_C, D_EN_IMM=> D_EN_IMM, D_EN_NPC=> D_EN_NPC, D_EN_WRITE=> D_EN_WRITE, D_SEL_RD_MUX=> D_SEL_RD_MUX,
+     D_EN_A=> D_EN_A, D_EN_B=> D_EN_B, D_EN_C=> D_EN_C, D_EN_IMM=> D_EN_IMM, D_EN_NPC=> D_EN_NPC, D_EN_WRITE=> D_EN_WRITE, D_EN_WRITE_DECODE=> D_EN_WRITE_DECODE,D_SEL_RD_MUX=> D_SEL_RD_MUX,
      D_IS_JUMP=> D_IS_JUMP,
     E_SEL_OP1_MUX=> E_SEL_OP1_MUX, E_SEL_OP2_MUX=> E_SEL_OP2_MUX, 
     E_ALU_FUNC=> E_ALU_FUNC, 

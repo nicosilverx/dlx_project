@@ -6,7 +6,7 @@ entity control_unit is
           D_FUNC : in std_logic_vector(0 to 10);
           CLK, RST : in std_logic;
           D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
-          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_SEL_RD_MUX, D_IS_JUMP : out std_logic;
+          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP : out std_logic;
           E_SEL_OP1_MUX, E_SEL_OP2_MUX : out std_logic;
           E_ALU_FUNC : out std_logic_vector(0 to 3);
           E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
@@ -37,12 +37,14 @@ D_EN_RF<=control_word(1);
 D_EN_READ1<=control_word(2);
 D_EN_READ2<=control_word(3);
 D_SEL_IMM_MUX<=control_word(4);--(5) is D_EN_WRITE
+
 D_SEL_RD_MUX<=control_word(6);
 D_IS_JUMP<=control_word(7);
 
 reg_1 : register_generic Generic Map (NBIT=> 17) Port Map (D(0)=>control_word(5), 
     D(1 to 16)=>control_word(8 to 23), Q=> cw_execute, CLK=> CLK, RST=> RST, EN=>'1');
 
+D_EN_WRITE_DECODE<=cw_execute(0);
 E_EN_ZERO_REG<=cw_execute(1); E_EN_ALU_OUTPUT<=cw_execute(1);
 E_EN_B_REG<=cw_execute(1); E_EN_C_REG<=cw_execute(1);
 E_SEL_OP1_MUX<=cw_execute(2);
@@ -87,21 +89,21 @@ begin
             end case;
         when "000010" => control_word<="110010111001111001100010";--j
         when "000011" => control_word<="110011111110000001100110";--jal
-        when "000100" => control_word<="111000011001111100100010";--beqz
-        when "000101" => control_word<="111000011001111110100010";--bnez
-        when "001000" => control_word<="111001001000000000100010";--addi
-        when "001010" => control_word<="111001001000001000100010";--subi
-        when "001100" => control_word<="111001001000011000100010";--andi
-        when "001101" => control_word<="111001001000100000100010";--ori
-        when "001110" => control_word<="111001001000101000100010";--xori
-        when "010100" => control_word<="111001001000110000100010";--slli
-        when "010101" => control_word<="110000001001111000100010";--nop
-        when "010110" => control_word<="111001001000111000100010";--srli
-        when "011001" => control_word<="111001001001110000100010";--snei
-        when "011100" => control_word<="111001001001101000100010";--slei
-        when "011101" => control_word<="111001001001100000100010";--sgei
+        when "000100" => control_word<="111000011001111100100010";--beqz x
+        when "000101" => control_word<="111000011001111110100010";--bnez x 
+        when "001000" => control_word<="111001001000000000100010";--addi x
+        when "001010" => control_word<="111001001000001000100010";--subi x
+        when "001100" => control_word<="111001001000011000100010";--andi x 
+        when "001101" => control_word<="111001001000100000100010";--ori  x
+        when "001110" => control_word<="111001001000101000100010";--xori x 
+        when "010100" => control_word<="111001001000110000100010";--slli x
+        when "010101" => control_word<="110000001001111000100010";--nop 
+        when "010110" => control_word<="111001001000111000100010";--srli x
+        when "011001" => control_word<="111001001001110000100010";--snei x
+        when "011100" => control_word<="111001001001101000100010";--slei x
+        when "011101" => control_word<="111001001001100000100010";--sgei x
         when "100011" => control_word<="111101001000000000110011";--lw
-        when "101011" => control_word<="111100001000000000101010";--sw
+        when "101011" => control_word<="111100001000000000101010";--sw x
         when OTHERS=> control_word<="110000001001111000100010";--nop
     end case;
 end process decode_instruction;
