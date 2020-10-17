@@ -37,9 +37,9 @@ begin
 PC : register_generic Generic Map (NBIT=> 32) Port Map (D=> PC_to_PC, Q=> PC_value, CLK=> CLK, RST=> RST, EN=> PC_EN);
 NPC: register_generic Generic Map (NBIT=> 32) Port Map (D=> adder_to_NPC, Q=> NPC_out, CLK=> CLK, RST=> flush_stage, EN=> NPC_EN);
 --NPC_out <= adder_to_NPC;
-IR : register_generic Generic Map (NBIT=> 32) Port Map (D=> instruction_word_in, Q=> IR_out, CLK=> CLK, RST=> flush_stage, EN=> IR_EN);
+IR : register_generic Generic Map (NBIT=> 32) Port Map (D=> instruction_word_in, Q=> IR_bus, CLK=> CLK, RST=> flush_stage, EN=> IR_EN);
 PC_adder : adder_generic Generic Map (NBIT=> 32) Port Map (A=> PC_value, B=>value_to_adder, S=> adder_to_NPC);
---NOP_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=>X"54000000" , B=>instruction_word_in, SEL=> stall, OUTPUT=> IR_bus);
+NOP_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=>X"54000000" , B=>IR_bus, SEL=> stall, OUTPUT=> IR_out);
 adder_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=>X"00000000", B=>X"00000004", SEL=> stall, OUTPUT=> value_to_adder);
 PC_mux : mux2to1_generic Generic Map (NBIT=> 32) Port Map (A=> adder_to_NPC, B=> PC_in, SEL=> sel_pc_mux, OUTPUT=> PC_to_PC);
 PC_out <= PC_value;

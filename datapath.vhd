@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity datapath is
     Port ( 
            D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
-           D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP: in std_logic;
+           D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP, D_EN_COMPARATOR: in std_logic;
            E_SEL_OP1_MUX, E_SEL_OP2_MUX : in std_logic;
            E_ALU_FUNC : in std_logic_vector(0 to 3);
            E_EN_NPC, E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
@@ -14,7 +14,8 @@ entity datapath is
            CLK, RST : in std_logic;
            D_OPCODE : out std_logic_vector(0 to 5);
            D_FUNC : out std_logic_vector(0 to 10);
-           datapath_out, IR : out std_logic_vector(0 to 31));
+           datapath_out, IR : out std_logic_vector(0 to 31);
+           stall_condition, flush_cu : out std_logic);
 end datapath;
 
 architecture rtl of datapath is
@@ -45,7 +46,7 @@ component execute_stage is
           ALU_func : in std_logic_vector(0 to 3);
           ALU_output, B_out, NPC_out: out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
-          is_zero : out std_logic );
+          is_zero, is_zero_prec : out std_logic );
 end component;
 
 component memory_stage is
@@ -66,9 +67,9 @@ end component;
 
 --Hazard detection unit
 component hazard_unit is
-    Port (Rs1, Rs2, Rt, Rt_EX: in std_logic_vector(0 to 4);
+    Port (Rs1, Rs2, Rt, Rt_EX, Rt_MEM: in std_logic_vector(0 to 4);
           Opcode : in std_logic_vector(0 to 5);
-          M_EN_READ: in std_logic;
+          CLK, M_EN_READ: in std_logic;
           STALL : out std_logic);
 end component;
 
@@ -87,30 +88,35 @@ signal NPC_to_fetch, LMD_to_writeback, ALU_to_writeback : std_logic_vector(0 to 
 signal C_to_decode : std_logic_vector(0 to 4);
 --Writeback to Decode/OUT
 signal DATAPATH_to_out, WRITEBACK_to_decode : std_logic_vector(0 to 31);
-signal stall, stall_to_fetch, active_fetch: std_logic := '0';
+signal stall, stall_to_fetch, stall_to_decode, active_fetch, active_decode: std_logic := '0';
 signal dp_flush_v, dp_flush, flush1, flush2, flush3, flush4, fetch_flush : std_logic := '1'; --attivo basso
-signal stall_counter_active : std_logic := '0';
-signal stall_counter : integer := 0;
+signal stall_counter_active, is_zero_prec : std_logic := '0';
+signal stall_counter, stall_counter_decode : integer := 0;
 
 begin
 
-stallProc:process(CLK, stall)
+stallProc:process(CLK, stall, stall_to_fetch, stall_counter)
 begin
-    if(stall='1') then
-        stall_to_fetch<='1';
-        stall_counter<=2;
-    elsif(CLK='0' AND CLK'EVENT)then
+     if(CLK='0' AND CLK'EVENT)then
+        if(stall='1') then
+            stall_to_fetch<='1';
+            stall_counter<=2;
+        end if;
+   
         if(stall_counter>0)then
             stall_to_fetch<='1';
             stall_counter <= stall_counter - 1;
-        else
+        elsif(stall_counter=0 and stall='0') then
             stall_to_fetch<='0';
         end if;
     end if;
 end process stallProc;
 
+stall_condition <= NOT(stall_to_fetch);
 active_fetch <= NOT(stall_to_fetch);
-dp_flush <= NOT(D_IS_JUMP) AND RST;
+active_decode <= NOT(stall_to_decode);
+dp_flush <= (NOT(D_IS_JUMP) AND RST) AND NOT(D_EN_COMPARATOR);
+--dp_flush<=((NOT(D_IS_JUMP) AND RST) OR (D_EN_COMPARATOR AND COND_TO_MEMORY AND RST));
 datapath_out <= DATAPATH_to_out; 
 IR <= IR_to_decode;
 fetch_flush <= flush1 AND flush2;
@@ -118,40 +124,43 @@ FlushPip:process(CLK, dp_flush)
 begin
     if(CLK='1' AND CLK'EVENT) then
         flush1 <= dp_flush;
+        
         flush2 <= flush1;
+        flush_cu<=flush1;
         flush3 <= flush2;
         flush4 <= flush3;
     end if;
 end process FlushPip;
 fetch_s : fetch_stage_wrapper Generic Map (NBIT=> 32) Port Map (
     PC_in=> NPC_to_fetch, NPC_out=> NPC_to_decode, IR_out=> IR_to_decode, 
-    CLK=> CLK, RST=> RST, PC_EN=> active_fetch, NPC_EN=> active_fetch, IR_EN=> active_fetch, sel_pc_mux=> COND_to_memory, flush_stage=> flush1, stall=> stall_to_fetch);
+    CLK=> CLK, RST=> RST, PC_EN=> active_fetch, NPC_EN=> active_fetch, IR_EN=> active_fetch, sel_pc_mux=> COND_to_memory, 
+    flush_stage=> flush2, stall=> stall_to_fetch);
 
 decode_s : decode_stage Generic Map (NBIT=> 32) Port Map (
     NPC_in=> NPC_to_decode, IR_in=> IR_to_decode, WB_datain=> WRITEBACK_to_decode, 
     WB_add=> C_to_decode, NPC_out=> NPC_to_execute, A_out=> A_to_execute, B_out=> B_to_execute, IMM_out=> IMM_to_execute, jal_out=> JAL_to_execute,
     C_out=> C_to_execute, Rd_out=> rd_decode, Opcode_out=> D_OPCODE, Func_out=> D_FUNC, EN_READ1=> D_EN_READ1, EN_READ2=> D_EN_READ2,
-     EN_WRITE=> D_EN_WRITE, EN_RF=> D_EN_RF, EN_A=> D_EN_A, EN_B=> D_EN_B, EN_C=> D_EN_C, EN_IMM=> D_EN_IMM, 
-     EN_NPC=> D_EN_NPC, sel_imm_mux=> D_SEL_IMM_MUX, sel_rd_mux=> D_SEL_RD_MUX, flush_stage=> flush2,D_EN_WRITE_DECODE=>D_EN_WRITE_DECODE, CLK=> CLK, RST=> RST);
+     EN_WRITE=> D_EN_WRITE, EN_RF=> D_EN_RF, EN_A=> active_decode, EN_B=> active_decode, EN_C=> active_decode, EN_IMM=> active_decode, 
+     EN_NPC=> active_decode, sel_imm_mux=> D_SEL_IMM_MUX, sel_rd_mux=> D_SEL_RD_MUX, flush_stage=> flush2,D_EN_WRITE_DECODE=>D_EN_WRITE_DECODE, CLK=> CLK, RST=> RST);
      
 execute_s : execute_stage Generic Map (NBIT=> 32) Port Map (
     NPC_in=> NPC_to_execute, A_in=> A_to_execute, B_in=> B_to_execute, Imm_in=> IMM_to_execute, jal_in=> JAL_to_execute,
     C_in=> C_to_execute, sel_op1_mux=>E_SEL_OP1_MUX, sel_op2_mux=> E_SEL_OP2_MUX, EN_ALU_output=> E_EN_ALU_OUTPUT, 
     EN_zero_reg=> E_EN_ZERO_REG, EN_B_reg=> E_EN_B_REG, EN_C_reg=> E_EN_C_REG, EN_comparator=> E_EN_COMPARATOR,
-    type_of_comp=> E_TYPE_OF_COMP, is_jump=> E_IS_JUMP, flush_stage=> flush3, CLK=> CLK, RST=> RST, ALU_func=> E_ALU_FUNC,
-    ALU_output=> ALU_to_memory, B_out=> B_to_memory, NPC_out=> NPC_to_fetch, C_out=> C_to_memory, is_zero=> COND_to_memory);     
+    type_of_comp=> E_TYPE_OF_COMP, is_jump=> E_IS_JUMP, flush_stage=> flush2, CLK=> CLK, RST=> RST, ALU_func=> E_ALU_FUNC,
+    ALU_output=> ALU_to_memory, B_out=> B_to_memory, NPC_out=> NPC_to_fetch, C_out=> C_to_memory, is_zero=> COND_to_memory, is_zero_prec=> is_zero_prec);     
     
 memory_s : memory_stage Generic Map (NBIT=> 32) Port Map (
     ALU_output=> ALU_to_memory, B_in=> B_to_memory, C_in=> C_to_memory,
     CLK=> CLK, RST=> RST, EN_READ=> M_EN_READ, EN_WRITE=> M_EN_WRITE, EN_LMD_reg=> M_EN_LMD_REG, 
-    EN_ALU_output_reg=> M_EN_ALU_OUTPUT, EN_C_reg=> M_EN_C_REG, is_link=> M_IS_LINK, flush_stage=> flush4,  
+    EN_ALU_output_reg=> M_EN_ALU_OUTPUT, EN_C_reg=> M_EN_C_REG, is_link=> M_IS_LINK, flush_stage=> flush2,  
     NPC_out=> open, LMD_out=> LMD_to_writeback, 
     ALU_reg_out=> ALU_to_writeback, C_out=> C_to_decode);
     
 writeback_s : writeback_stage Generic Map (NBIT=> 32) Port Map (
     LMD_out=> LMD_to_writeback, ALU_out=> ALU_to_writeback, CLK=> CLK, RST=> RST, EN_DATAPATH_out=> W_EN_DATAPATH_OUT,
-    sel_wb_mux=> W_SEL_WB_MUX, flush_stage=> flush4, WRITEBACK=> WRITEBACK_to_decode, DATAPATH_out=> DATAPATH_to_out);      
+    sel_wb_mux=> W_SEL_WB_MUX, flush_stage=> flush2, WRITEBACK=> WRITEBACK_to_decode, DATAPATH_out=> DATAPATH_to_out);      
     
 hazard_det_unit : hazard_unit Port Map (Rs1=>IR_to_decode(6 to 10), Rs2=> IR_to_decode(11 to 15), Rt=>rd_decode, Rt_EX=> C_to_execute, 
-Opcode=>IR_to_decode(0 to 5), M_EN_READ=> D_EN_WRITE_DECODE, STALL=> stall);    
+    Rt_MEM=> C_to_memory, Opcode=>IR_to_decode(0 to 5), CLK=> CLK, M_EN_READ=> D_EN_WRITE_DECODE, STALL=> stall);    
 end rtl;

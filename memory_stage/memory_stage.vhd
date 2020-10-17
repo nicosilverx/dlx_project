@@ -31,19 +31,33 @@ component dram is
              D_SIZE : integer := 32);
     Port (ADDR, DATAIN : in std_logic_vector(0 to D_SIZE-1);
           DOUT : out std_logic_vector(0 to D_SIZE-1);
-          RST, READ, WRITE : in std_logic);             
+          CLK, RST, READ, WRITE, EN : in std_logic);             
 end component;
+
+component dram2 is
+    port (
+    clock   : in  std_logic;
+    rst   : in  std_logic;
+    we      : in  std_logic;
+    re      : in  std_logic;
+    address : in  std_logic_vector;
+    datain  : in  std_logic_vector;
+    dataout : out std_logic_vector
+  );
+end component;
+
 --Internal wires
 signal ALU_bus, DRAM_out : std_logic_vector(0 to NBIT-1);
 signal c_mux_out : std_logic_vector(0 to 4);
+signal CLK_n : std_logic;
 
 begin
-
+CLK_n <= NOT(CLK);
 --NPC_out <= ALU_output;
 
-DRAM_1 : dram Generic Map (RAM_DEPTH=> 48, D_SIZE=> 32)
-    Port Map (ADDR=> ALU_output, DATAIN=> B_in, DOUT=> DRAM_out, RST=> RST, READ=> EN_READ, WRITE=> EN_WRITE);
-
+--DRAM_1 : dram Generic Map (RAM_DEPTH=> 48, D_SIZE=> 32)
+--    Port Map (ADDR=> ALU_output, DATAIN=> B_in, DOUT=> DRAM_out, CLK=> CLK, RST=> RST, READ=> EN_READ, WRITE=> EN_WRITE, EN=>'1');
+DRAM_2 : dram2 Port Map (clock=> CLK, rst=> RST, we=> EN_WRITE, re=> EN_READ, address=> ALU_output, datain=> B_in, dataout=> DRAM_out);
 LMD_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> DRAM_out, Q=> LMD_out, 
     CLK=> CLK, RST=> RST, EN=> EN_LMD_reg);
 ALU_output_reg : register_generic Generic Map (NBIT=> 32) Port Map (D=> ALU_output, Q=> ALU_reg_out, 

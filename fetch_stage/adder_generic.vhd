@@ -15,7 +15,7 @@ begin
 
 AddProc:process(A, B)
 begin
-    S <= std_logic_vector(unsigned(A) + unsigned(B));
+    S <= std_logic_vector(signed(A) + signed(B));
 end process AddProc;
 
 end rtl;

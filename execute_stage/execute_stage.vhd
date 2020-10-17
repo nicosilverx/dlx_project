@@ -9,7 +9,7 @@ entity execute_stage is
           ALU_func : in std_logic_vector(0 to 3);
           ALU_output, B_out, NPC_out: out std_logic_vector(0 to NBIT-1);
           C_out : out std_logic_vector(0 to 4);
-          is_zero : out std_logic );
+          is_zero, is_zero_prec : out std_logic );
 end execute_stage;
 
 architecture rtl of execute_stage is
@@ -65,6 +65,7 @@ signal comparator_out : std_logic :='1';
 begin
 
 --NPC_bus <= NPC_in;
+is_zero_prec<=comparator_out;
 ALU_output <= ALU_out_reg_bus;
 A_bus <= A_in;
 B_bus <= B_in;

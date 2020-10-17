@@ -6,13 +6,14 @@ entity control_unit is
           D_FUNC : in std_logic_vector(0 to 10);
           CLK, RST : in std_logic;
           D_EN_RF, D_EN_READ1, D_EN_READ2, D_SEL_IMM_MUX, 
-          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP : out std_logic;
+          D_EN_A, D_EN_B, D_EN_C, D_EN_IMM, D_EN_NPC, D_EN_WRITE, D_EN_WRITE_DECODE, D_SEL_RD_MUX, D_IS_JUMP, D_EN_COMPARATOR : out std_logic;
           E_SEL_OP1_MUX, E_SEL_OP2_MUX : out std_logic;
           E_ALU_FUNC : out std_logic_vector(0 to 3);
           E_EN_ZERO_REG, E_EN_ALU_OUTPUT,
           E_EN_B_REG, E_EN_C_REG, E_EN_COMPARATOR, E_TYPE_OF_COMP, E_IS_JUMP : out std_logic;
           M_EN_READ, M_EN_WRITE, M_EN_LMD_REG, M_EN_ALU_OUTPUT, M_EN_C_REG, M_IS_LINK, M_IS_JUMP: out std_logic;
-          W_SEL_WB_MUX, W_EN_DATAPATH_OUT : out std_logic);
+          W_SEL_WB_MUX, W_EN_DATAPATH_OUT : out std_logic;
+          stall_condition, flush_cu : in std_logic);
 end control_unit;
 
 architecture rtl of control_unit is
@@ -28,8 +29,10 @@ signal control_word : std_logic_vector(0 to 23) := (OTHERS=>'0'); --24 control s
 signal cw_execute : std_logic_vector(0 to 16) := (OTHERS=>'0'); --17 control signals
 signal cw_memory : std_logic_vector(0 to 7) := (OTHERS=>'0'); --8 control signals
 signal cw_writeback : std_logic_vector(0 to 2) := (OTHERS=>'0');
-
+signal CLK_n : std_logic;
 begin
+
+CLK_n <= NOT(CLK);
 
 D_EN_A<=control_word(0); D_EN_B<=control_word(0); 
 D_EN_C<=control_word(0); D_EN_IMM<=control_word(0); D_EN_NPC<=control_word(0);
@@ -40,9 +43,10 @@ D_SEL_IMM_MUX<=control_word(4);--(5) is D_EN_WRITE
 
 D_SEL_RD_MUX<=control_word(6);
 D_IS_JUMP<=control_word(7);
+D_EN_COMPARATOR<=control_word(15);
 
 reg_1 : register_generic Generic Map (NBIT=> 17) Port Map (D(0)=>control_word(5), 
-    D(1 to 16)=>control_word(8 to 23), Q=> cw_execute, CLK=> CLK, RST=> RST, EN=>'1');
+    D(1 to 16)=>control_word(8 to 23), Q=> cw_execute, CLK=> CLK, RST=> RST, EN=>stall_condition);
 
 D_EN_WRITE_DECODE<=cw_execute(0);
 E_EN_ZERO_REG<=cw_execute(1); E_EN_ALU_OUTPUT<=cw_execute(1);
@@ -55,26 +59,27 @@ E_EN_COMPARATOR<=cw_execute(8); E_TYPE_OF_COMP<=cw_execute(9);
 E_IS_JUMP<=cw_execute(10);
 
 reg_2 : register_generic Generic Map (NBIT=> 8) Port Map (D(0)=>cw_execute(0), 
-    D(1 to 6)=> cw_execute(11 to 16), D(7)=>cw_execute(10), Q=> cw_memory, CLK=> CLK, RST=> RST, EN=> '1');
+    D(1 to 6)=> cw_execute(11 to 16), D(7)=>cw_execute(10), Q=> cw_memory, CLK=> CLK, RST=> flush_cu, EN=> '1');
     
 M_EN_LMD_REG<=cw_memory(1); M_EN_ALU_OUTPUT<=cw_memory(1); M_EN_C_REG<=cw_memory(1);
 M_EN_READ<=cw_memory(2);
 M_EN_WRITE<=cw_memory(3);
 M_IS_LINK<=cw_memory(4);
-M_IS_JUMP<=cw_memory(7);
+M_IS_JUMP<=cw_memory(5);
 reg_3 : register_generic Generic Map (NBIT=> 3) Port Map (D(0)=>cw_memory(0), 
-    D(1 to 2)=> cw_memory(5 to 6), Q=> cw_writeback, CLK=> CLK, RST=> RST, EN=> '1');
+    D(1 to 2)=> cw_memory(5 to 6), Q=> cw_writeback, CLK=> CLK, RST=> flush_cu, EN=> '1');
     
 D_EN_WRITE<=cw_writeback(0);
 W_EN_DATAPATH_OUT<=cw_writeback(1);
 W_SEL_WB_MUX<=cw_writeback(2);
         
-decode_instruction:process(D_OPCODE, D_FUNC, CLK)
+decode_instruction:process(D_OPCODE, D_FUNC, CLK, stall_condition)
 begin
+    if(stall_condition='1')then
     case D_OPCODE is
         when "000000" => 
             case D_FUNC is
-                when "00000000000" => control_word<="000000000000000000000000"; --all zeros, debug
+                when "00000000000" => control_word<="110000001001111000100010"; --all zeros, debug
                 when "00000000100" => control_word<="111101101010110000100010";--sll --
                 when "00000000110" => control_word<="111101101010111000100010";--srl
                 when "00000100000" => control_word<="111101101010000000100010";--add
@@ -106,6 +111,9 @@ begin
         when "101011" => control_word<="111100001000000000101010";--sw x
         when OTHERS=> control_word<="110000001001111000100010";--nop
     end case;
+    else 
+        control_word<="110000001001111000100010";
+    end if;
 end process decode_instruction;
 
 
