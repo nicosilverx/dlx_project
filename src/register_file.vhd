@@ -1,10 +1,8 @@
-library ieee;
-
-use ieee.std_logic_1164.all;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
-use IEEE.std_logic_unsigned.all;
 
-entity register_file_generic is
+entity register_file is
     Generic (N_ROWS       : integer := 32;
              NBIT_ADDRESS : integer := 5;
              NBIT_WORD    : integer := 32);
@@ -12,9 +10,9 @@ entity register_file_generic is
 		  ADD_WR, ADD_RD1, ADD_RD2  : in std_logic_vector(0 to NBIT_ADDRESS-1);
 		  DATAIN : in std_logic_vector(0 to NBIT_WORD-1);
 		  OUT1, OUT2 : out std_logic_vector(0 to NBIT_WORD-1));
-end register_file_generic;
+end register_file;
 
-architecture rtl of register_file_generic is
+architecture beh of register_file is
 
 subtype RF_ADDR is natural range 0 to N_ROWS-1;
 type RF_ARRAY is array(RF_ADDR) of std_logic_vector(0 to NBIT_WORD-1);
@@ -46,4 +44,5 @@ begin
             end case;
     end if;
 end process RFProc;
-end rtl;
+
+end beh;

@@ -9,7 +9,7 @@ entity sign_extender_generic is
           O : out std_logic_vector(0 to NBIT_output-1));
 end sign_extender_generic;
 
-architecture rtl of sign_extender_generic is
+architecture beh of sign_extender_generic is
 
 begin
 
@@ -18,4 +18,4 @@ begin
     O <= std_logic_vector(resize(signed(A),NBIT_output));
 end process SignProc;
 
-end rtl;
+end beh;
