@@ -14,7 +14,7 @@ signal STALL_v : std_logic := '0';
 signal stall_counter : integer := 0;
 begin
 
-hazProc:process(Rs1, Rs2, Rt, Rt_EX, M_EN_READ, STALL_v)
+hazProc:process(CLK, Opcode, Next_opcode, Rs1, Rs2, Rt, Rt_EX, M_EN_READ, STALL_v)
 begin
     if(Opcode="000000") then
         if(M_EN_READ='1' and (Rt_EX=Rs1 OR RT_EX=Rs2 OR Rt_MEM=Rs1 OR Rt_MEM=Rs2)) then
@@ -30,7 +30,7 @@ begin
             STALL_v<='0';
           end if; 
     elsif(Opcode="101011") then --sw
-        if(((Rt_EX=Rs1 OR RT_EX=Rs2 OR Rt_MEM=Rs1 OR Rt_MEM=Rs2) AND (Opcode/=Next_opcode)) OR (Next_opcode="100011")) then
+        if(((Rt_EX=Rs1 OR RT_EX=Rs2 OR Rt_MEM=Rs1 OR Rt_MEM=Rs2) AND (Next_opcode/="100011"))) then
             STALL_v<='1';
         else
             STALL_v<='0';
@@ -47,6 +47,8 @@ begin
         else
             STALL_v<='0';
         end if;
+    elsif((Opcode="000010" OR Opcode="000011") AND (Next_opcode="000010" OR Next_opcode="000011"))then
+        STALL_v<='0';
     else
         STALL_v<='0';
     end if;

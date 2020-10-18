@@ -66,7 +66,7 @@ M_IS_LINK<=cw_reg3_out(3);
 W_SEL_WB_MUX<=cw_reg4_out(1);
 
 --Jump
-jump_reg1 : register_generic Generic Map (NBIT=> 1, RESET_VALUE=>'1') Port Map (D(0)=> jump, Q(0)=> jump_reg1_out, CLK=> CLK, RST=> RST, EN=>'1');
+jump_reg1 : register_generic Generic Map (NBIT=> 1, RESET_VALUE=>'1') Port Map (D(0)=> jump, Q(0)=> jump_reg1_out, CLK=> CLK, RST=> RST, EN=>stall_in);
 jump_reg2 : register_generic Generic Map (NBIT=> 1, RESET_VALUE=>'1') Port Map (D(0)=> jump_reg1_out, Q(0)=> jump_reg2_out, CLK=> CLK, RST=> RST, EN=>'1');
 jump_reg3 : register_generic Generic Map (NBIT=> 1, RESET_VALUE=>'1') Port Map (D(0)=> jump_reg2_out, Q(0)=> jump_reg3_out, CLK=> CLK, RST=> RST, EN=>'1');
 
